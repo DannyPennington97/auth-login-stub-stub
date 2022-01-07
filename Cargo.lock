@@ -373,6 +373,8 @@ dependencies = [
  "anyhow",
  "askama",
  "config",
+ "serde 1.0.130",
+ "serde_derive",
 ]
 
 [[package]]
