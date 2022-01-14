@@ -8,6 +8,7 @@ use serde_derive::Deserialize;
 use std::fmt::Error;
 use actix_web::error::ErrorBadRequest;
 use config::{ConfigError, Config};
+use auth_login_stub_stub::build_form_params;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -34,10 +35,20 @@ async fn index(_req: HttpRequest) -> Result<HttpResponse> {
 
 async fn handle_quick(_req: HttpRequest, form: web::Form<FormData>) -> Result<HttpResponse>  {
     let config: Config = lib::get_config(&form.service).map_err(|e: ConfigError| error::ErrorInternalServerError(e.to_string()))?;
+    let url: String = "http://localhost:9949/auth-login-stub/gg-sign-in/".to_string();
 
-    let redirect: String = config.get("redirect_url").unwrap();
+    let form_params = build_form_params(config);
 
-    Ok(HttpResponse::Ok().content_type("text/plain").body(format!("Quick handler used {}! Redirect_url: {}", form.service, redirect)))
+    let client = reqwest::Client::new();
+
+    let x = client.post(url)
+        .form(&form_params)
+        .send()
+        .await?;
+
+    Ok(HttpResponse::PermanentRedirect().body(x))
+
+    //Ok(HttpResponse::Ok().content_type("text/plain").body(format!("Quick handler used {}! Redirect_url: {}", form.service, redirect)))
 }
 
 async fn handle_custom(_req: HttpRequest, form: web::Form<FormData>) -> Result<HttpResponse>  {
